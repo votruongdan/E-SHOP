@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laravel-web-deployment
+  labels:
+    app: laravel-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: laravel-app
+  template:
+    metadata:
+      labels:
+        app: laravel-app
+    spec:
+      containers:
+      - name: ten-du-an-laravel-cua-bancontainer
+        image: ten-du-an-laravel-cua-ban # Sửa lại tag image cho phù hợp
+        ports:
+        - containerPort: 80
+        env:
+          - name: APP_NAME
+            value: "E-SHOP"
+          - name: APP_ENV
+            value: "production" # Đổi từ local sang production
+          - name: APP_KEY
+            valueFrom:
+              secretKeyRef:
+                name: laravel-secret
+                key: APP_KEY
+          - name: APP_DEBUG
+            value: "false" # Không nên bật debug trong sản xuất
+          - name: DB_CONNECTION
+            value: "mysql"
+          - name: DB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: laravel-secret
+                key: DB_HOST
+          - name: DB_PORT
+            value: "3306"
+          - name: DB_DATABASE
+            value: "test-etech" # Sửa tên database cho phù hợp môi trường
+          - name: DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: laravel-secret
+                key: DB_USERNAME
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: laravel-secret
+                key: DB_PASSWORD
+          # Bỏ đi các cấu hình liên quan đến REDIS, MAIL, etc. nếu không sử dụng
+        volumeMounts:
+          # Cấu hình các volumeMounts theo cần thiết
+          - name: storage-volume
+            mountPath: /var/www/html/storage
+      volumes:
+        # Cấu hình các volumes theo cần thiết
+        - name: storage-volume
+          persistentVolumeClaim:
+            claimName: storage-pvc
